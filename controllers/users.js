@@ -19,7 +19,7 @@ function getUsers(req, res) {
 function getUser(req, res) {
   User.findById(req.params.userId)
     .orFail(() => {
-      throw new Error('user not found');
+      throw new Error(NotFound);
     })
     .then((useris) => res.status(StatusOk).send({ data: useris }))
     .catch((err) => {

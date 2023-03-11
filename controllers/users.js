@@ -18,6 +18,9 @@ function getUsers(req, res) {
 
 function getUser(req, res) {
   User.findById(req.params.userId)
+    .orFail(() => {
+      throw new Error('user not found');
+    })
     .then((useris) => res.status(StatusOk).send({ data: useris }))
     .catch((err) => {
       if (err.name === 'ReferenceError') {
@@ -26,6 +29,7 @@ function getUser(req, res) {
         res.status(NotFound).send({ message: 'Пользователь по указанному _id не найден, произошла ошибка 404' });
       }
     });
+  console.log(User);
 }
 
 function creatUser(req, res) {

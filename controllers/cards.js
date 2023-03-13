@@ -38,9 +38,14 @@ function deleteCard(req, res) {
       }
       res.send({ data: card })
     })
-    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+      } else {
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+      }
+    })
 }
-
 function putCardLikes(req, res) {
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -54,8 +59,11 @@ function putCardLikes(req, res) {
       res.status(StatusOk).send({ data: putLikes })
     })
     .catch((err) => {
+      console.log(err.name)
       if (err.name === 'ValidationError') {
         res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+      } else if (err.name === 'CastError') {
+        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
         res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
       }
@@ -77,6 +85,8 @@ function putDeleteLikes(req, res) {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+      } else if (err.name === 'CastError') {
+        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
         res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
       }

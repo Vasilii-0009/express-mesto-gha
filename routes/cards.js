@@ -6,7 +6,7 @@ const {
 
 router.post('/cards', createCard);
 
-router.get('/card', getCards);
+router.get('/cards', getCards);
 
 router.delete('/cards/:cardId', deleteCard);
 

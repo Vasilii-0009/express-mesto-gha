@@ -19,7 +19,6 @@ function getUser(req, res) {
       res.status(StatusOk).send({ data: useris })
     })
     .catch((err) => {
-      console.log(err)
       if (err.name === 'CastError') {
         res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       }

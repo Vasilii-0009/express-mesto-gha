@@ -18,7 +18,13 @@ function getUser(req, res) {
       }
       res.status(StatusOk).send({ data: useris })
     })
-    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
+    .catch((err) => {
+      console.log(err)
+      if (err.name === 'CastError') {
+        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+      }
+      res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+    });
 }
 
 function creatUser(req, res) {

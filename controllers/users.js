@@ -75,6 +75,7 @@ function patchAvatar(req, res) {
     });
 }
 
+
 module.exports = {
   getUsers, getUser, creatUser, patchUser, patchAvatar,
 };

@@ -65,7 +65,7 @@ function putCardLikes(req, res) {
       } else if (err.name === 'CastError') {
         res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }
@@ -88,7 +88,7 @@ function putDeleteLikes(req, res) {
       } else if (err.name === 'CastError') {
         res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }

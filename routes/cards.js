@@ -4,14 +4,18 @@ const {
   createCard, getCards, deleteCard, putCardLikes, putDeleteLikes,
 } = require('../controllers/cards');
 
-router.post('/cards', createCard);
+router.post('/', createCard);
 
-router.get('/cards', getCards);
+router.get('/', getCards);
 
-router.delete('/cards/:cardId', deleteCard);
+router.delete('/:cardId', deleteCard);
 
-router.put('/cards/:cardId/likes', putCardLikes);
+router.put('/:cardId/likes', putCardLikes);
 
-router.delete('/cards/:cardId/likes', putDeleteLikes);
+router.delete('/:cardId/likes', putDeleteLikes);
+
+// router.get('*', function (req, res) {
+//   return res.status(404).send({ message: `Несуществующий маршрут, произошла ошибка 404` });
+// })
 
 module.exports = router;

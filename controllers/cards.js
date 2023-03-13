@@ -1,44 +1,44 @@
 const Card = require('../models/card');
 const {
-  BadRequest, InternalServerError, NotFound, StatusOk,
+  BadRequest, InternalServerError, NotFound, StatusOk, StatusOkCreat
 } = require('../utils/statusCode');
 
 function createCard(req, res) {
-  const { name, link } = req.body;
+  const { name, link, } = req.body;
   const owner = req.user._id;
-  Card.create({ name, link, owner })
-    .then((card) => res.status(StatusOk).send(card))
+  const likes = req.user._id;
+  Card.create({ name, link, owner, likes })
+    .then((card) => res.status(StatusOkCreat).send(card))
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
+      if (err.name === 'ValidationError') {
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
       } else {
-        res.status(BadRequest).send({ message: 'Переданы некорректные данные при создании карточки, произошла ошибка 400' });
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }
 
 function getCards(req, res) {
   Card.find({})
-    .then((cards) => res.status(StatusOk).send({ cards }))
-    .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else {
-        res.status(BadRequest).send({ message: 'Переданы некорректные данные при создании карточки, произошла ошибка 400' });
-      }
-    });
+    .populate(['owner', 'likes'])
+    .then((cards) => {
+      console.log(cards.id)
+      res.status(StatusOk).send({ cards })
+    })
+    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
 }
 
-function getCard(req, res) {
-  Card.findById(req.params.cardId)
-    .then((card) => res.status(StatusOk).send({ data: card }))
-    .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else {
-        res.status(NotFound).send({ message: ' Карточка с указанным _id не найдена, произошла ошибка 404' });
+function deleteCard(req, res) {
+  console.log(req.params.cardId)
+  console.log(req.params._id)
+  Card.findByIdAndRemove(req.params.cardId)
+    .then(card => {
+      if (card === null || !card) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
       }
-    });
+      res.send({ data: card })
+    })
+    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
 }
 
 function putCardLikes(req, res) {
@@ -47,14 +47,17 @@ function putCardLikes(req, res) {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .then((putLikes) => res.status(StatusOk).send({ data: putLikes }))
+    .then((putLikes) => {
+      if (putLikes === null) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+      }
+      res.status(StatusOk).send({ data: putLikes })
+    })
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
+      if (err.name === 'ValidationError') {
+        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+      } else {
         res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else if (err.valueType !== 'string') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные для постановки/снятии лайка, произошла ошибка 400' });
-      } else if (err.name === 'CastError') {
-        res.status(NotFound).send({ message: 'Передан несуществующий _id карточки, произошла ошибка 404' });
       }
     });
 }
@@ -65,16 +68,21 @@ function putDeleteLikes(req, res) {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
-    .then((deletelikes) => res.status(StatusOk).send({ data: deletelikes }))
+    .then((deletelikes) => {
+      if (deletelikes === null) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+      }
+      res.status(StatusOk).send({ data: deletelikes })
+    })
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
+      if (err.name === 'ValidationError') {
+        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
       } else {
-        res.status(NotFound).send({ message: 'Карточка с указанным _id не найдена, произошла ошибка 404' });
+        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
       }
     });
 }
 
 module.exports = {
-  createCard, getCards, getCard, putCardLikes, putDeleteLikes,
+  createCard, getCards, deleteCard, putCardLikes, putDeleteLikes,
 };

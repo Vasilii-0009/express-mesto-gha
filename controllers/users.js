@@ -7,29 +7,18 @@ const {
 function getUsers(req, res) {
   User.find({})
     .then((users) => res.status(StatusOk).send({ users }))
-    .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else {
-        res.status(BadRequest).send({ message: 'Переданы некорректные данные при создании пользователя, произошла ошибка 400' });
-      }
-    });
+    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
 }
 
 function getUser(req, res) {
   User.findById(req.params.userId)
-    .orFail(() => {
-      throw new Error(NotFound);
-    })
-    .then((useris) => res.status(StatusOk).send({ data: useris }))
-    .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else {
-        res.status(NotFound).send({ message: 'Пользователь по указанному _id не найден, произошла ошибка 404' });
+    .then((useris) => {
+      if (useris === null) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
       }
-    });
-  console.log(User);
+      res.status(StatusOk).send({ data: useris })
+    })
+    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
 }
 
 function creatUser(req, res) {
@@ -37,43 +26,46 @@ function creatUser(req, res) {
   User.create({ name, about, avatar })
     .then((user) => res.status(StatusOk).send(user))
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
+      if (err.name === 'ValidationError') {
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
       } else {
-        res.status(BadRequest).send({ message: 'Переданы некорректные данные при создании пользователя, произошла ошибка 400' });
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }
 
 function patchUser(req, res) {
-  User.findByIdAndUpdate(req.params._id, {
-    name: [1, 23, 3],
-    about: 'web-developer',
-  })
-    .then((newUser) => res.status(StatusOk).send(newUser))
+  const { name, about } = req.body
+  User.findByIdAndUpdate(req.params._id, { name, about }, { new: true, runValidators: true })
+    .then((newUser) => {
+      if (!newUser) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+      }
+      res.status(StatusOk).send(newUser)
+    })
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else if (err.valueType !== 'string') {
+      if (err.name === 'ValidationError') {
         res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
-      } else if (err.name === 'CastError') {
-        res.status(NotFound).send({ message: 'Пользователь с указанным _id не найден, произошла ошибка 404' });
+      } else {
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }
 
 function patchAvatar(req, res) {
-  User.findByIdAndUpdate(req.params._id, {
-    avatar: 'https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kamchatka.jpg',
-  })
-    .then((newAvatar) => res.status(StatusOk).send(newAvatar))
+  const { avatar } = req.body
+  User.findByIdAndUpdate(req.params._id, { avatar }, { new: true, runValidators: true })
+    .then((newAvatar) => {
+      if (!newAvatar) {
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+      }
+      res.status(StatusOk).send(newAvatar)
+    })
     .catch((err) => {
-      if (err.name === 'ReferenceError') {
-        res.status(InternalServerError).send({ message: 'Произошла ошибка 500' });
-      } else if (err.valueType !== 'string') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении аватара, произошла ошибка 400' });
-      } else if (err.name === 'CastError') {
-        res.status(NotFound).send({ message: 'Пользователь с указанным _id не найден, произошла ошибка 404' });
+      if (err.name === 'ValidationError') {
+        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+      } else {
+        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     });
 }

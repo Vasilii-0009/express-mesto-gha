@@ -14,7 +14,7 @@ function getUser(req, res) {
   User.findById(req.params.userId)
     .then((useris) => {
       if (useris === null) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.status(StatusOk).send({ data: useris })
     })
@@ -44,13 +44,13 @@ function patchUser(req, res) {
   User.findByIdAndUpdate(req.params._id, { name, about }, { new: true, runValidators: true })
     .then((newUser) => {
       if (!newUser) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.status(StatusOk).send(newUser)
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
@@ -62,13 +62,13 @@ function patchAvatar(req, res) {
   User.findByIdAndUpdate(req.params._id, { avatar }, { new: true, runValidators: true })
     .then((newAvatar) => {
       if (!newAvatar) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.status(StatusOk).send(newAvatar)
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }

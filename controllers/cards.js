@@ -34,7 +34,7 @@ function deleteCard(req, res) {
   Card.findByIdAndRemove(req.params.cardId)
     .then(card => {
       if (card === null || !card) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.send({ data: card })
     })
@@ -54,14 +54,14 @@ function putCardLikes(req, res) {
   )
     .then((putLikes) => {
       if (putLikes === null) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.status(StatusOk).send({ data: putLikes })
     })
     .catch((err) => {
       console.log(err.name)
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else if (err.name === 'CastError') {
         res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
@@ -78,13 +78,13 @@ function putDeleteLikes(req, res) {
   )
     .then((deletelikes) => {
       if (deletelikes === null) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка 404` });
+        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
       }
       res.status(StatusOk).send({ data: deletelikes })
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: ' Переданы некорректные данные при обновлении профиля, произошла ошибка 400' });
+        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else if (err.name === 'CastError') {
         res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {

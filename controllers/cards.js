@@ -11,7 +11,7 @@ function createCard(req, res) {
     .then((card) => res.status(StatusOkCreat).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
+        return res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
@@ -40,12 +40,13 @@ function deleteCard(req, res) {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
     })
 }
+
 function putCardLikes(req, res) {
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -60,10 +61,8 @@ function putCardLikes(req, res) {
     })
     .catch((err) => {
       console.log(err.name)
-      if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
-      } else if (err.name === 'CastError') {
-        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+      if (err.name === 'CastError') {
+        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
@@ -83,10 +82,8 @@ function putDeleteLikes(req, res) {
       res.status(StatusOk).send({ data: deletelikes })
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
-      } else if (err.name === 'CastError') {
-        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+      if (err.name === 'CastError') {
+        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }

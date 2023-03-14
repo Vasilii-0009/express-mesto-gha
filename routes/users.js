@@ -13,8 +13,4 @@ router.patch('/me/:_id', patchUser);
 
 router.patch('/me/avatar/:_id', patchAvatar);
 
-// router.get('*', function (req, res) {
-//   return res.status(404).send({ message: `Несуществующий маршрут, произошла ошибка 404` });
-// })
-
 module.exports = router;

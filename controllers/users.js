@@ -20,7 +20,7 @@ function getUser(req, res) {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
       }
       res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
     });
@@ -32,7 +32,7 @@ function creatUser(req, res) {
     .then((user) => res.status(StatusOk).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
+        return res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
@@ -50,7 +50,7 @@ function patchUser(req, res) {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
+        return res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }
@@ -68,7 +68,7 @@ function patchAvatar(req, res) {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
+        return res.status(BadRequest).send({ message: `Переданы некорректные данные при обновлении профиля, произошла ошибка ${err.name}` });
       } else {
         res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
       }

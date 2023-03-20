@@ -1,53 +1,64 @@
 const Card = require('../models/card');
 const {
-  BadRequest, InternalServerError, NotFound, StatusOk, StatusOkCreat
+  BadRequest, InternalServerError, NotFound, StatusOk, StatusOkCreat,
 } = require('../utils/statusCode');
 
-function createCard(req, res) {
-  const { name, link, } = req.body;
+// pr14
+const NotFoundError = require('../utils/not-found-err');
+const BadRequestError = require('../utils/bad-request-err');
+const ValidationError = require('../utils/validation-err');
+const DublicatError = require('../utils/duplicate-err');
+const UnauthorizedError = require('../utils/unauthorized-err');
+
+function createCard(req, res, next) {
+  const { name, link } = req.body;
   const owner = req.user._id;
   const likes = req.user._id;
   Card.create({ name, link, owner, likes })
     .then((card) => res.status(StatusOkCreat).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BadRequest).send({ message: `Переданы некорректные данные при создании пользователя, произошла ошибка ${err.name}` });
-      } else {
-        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send(new ValidationError());
       }
+      next(err);
     });
 }
 
-function getCards(req, res) {
+function getCards(req, res, next) {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => {
-      console.log(cards.id)
-      res.status(StatusOk).send({ cards })
+      res.status(StatusOk).send({ cards });
     })
-    .catch((err) => res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` }));
+    .catch((err) => {
+      next(err);
+    });
 }
 
-function deleteCard(req, res) {
-  console.log(req.params.cardId)
-  console.log(req.params._id)
-  Card.findByIdAndRemove(req.params.cardId)
-    .then(card => {
-      if (card === null || !card) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
+function deleteCard(req, res, next) {
+  Card.findById(req.params.cardId)
+    .then((user) => {
+      if (user === null || !user) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      res.send({ data: card })
+      const paramsId = req.user._id.toString();
+      const cardId = user.owner.toString();
+      if (paramsId === cardId) {
+        Card.findByIdAndRemove(req.params.cardId)
+          .then((card) => {
+            res.send({ data: card });
+          });
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
-      } else {
-        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send(new BadRequestError());
       }
-    })
+      next(err);
+    });
 }
 
-function putCardLikes(req, res) {
+function putCardLikes(req, res, next) {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -55,21 +66,19 @@ function putCardLikes(req, res) {
   )
     .then((putLikes) => {
       if (putLikes === null) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      res.status(StatusOk).send({ data: putLikes })
+      res.status(StatusOk).send({ data: putLikes });
     })
     .catch((err) => {
-      console.log(err.name)
       if (err.name === 'CastError') {
-        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
-      } else {
-        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send(new BadRequestError());
       }
+      next(err);
     });
 }
 
-function putDeleteLikes(req, res) {
+function putDeleteLikes(req, res, next) {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -77,16 +86,15 @@ function putDeleteLikes(req, res) {
   )
     .then((deletelikes) => {
       if (deletelikes === null) {
-        return res.status(NotFound).send({ message: `Пользователь по указанному _id не найден, произошла ошибка ${err.name}` });
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      res.status(StatusOk).send({ data: deletelikes })
+      res.status(StatusOk).send({ data: deletelikes });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BadRequest).send({ message: `Некоректный id, произошла ошибка ${err.name}` })
-      } else {
-        res.status(InternalServerError).send({ message: `Произошла ошибка ${err.name}` })
+        return res.status(BadRequest).send(new BadRequestError());
       }
+      next(err);
     });
 }
 

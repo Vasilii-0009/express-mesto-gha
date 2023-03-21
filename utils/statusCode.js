@@ -9,5 +9,12 @@ const InternalServerError = 500;
 const ErrorUrl = 'ошибка 404: запрос по несуществующиму адресу';
 
 module.exports = {
-  BadRequest, Unauthorized, InternalServerError, NotFound, StatusOk, StatusOkCreat, ErrorUrl, Conflict,
+  BadRequest,
+  Unauthorized,
+  InternalServerError,
+  NotFound,
+  StatusOk,
+  StatusOkCreat,
+  ErrorUrl,
+  Conflict,
 };

@@ -10,17 +10,12 @@ const {
 router.get('/', getUsers);
 
 // pr14
-router.get('/me', celebrate({
-  headers: Joi.object().keys({
-    // валидируем заголовки
-    authorization: Joi.string().required(),
-  }).unknown(true),
-}), getInfoUser);
+router.get('/me', getInfoUser);
 // pr14
 
 router.get('/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().length(24),
+    userId: Joi.string().hex().required().length(24),
   }),
 }), getUser);
 
@@ -33,7 +28,7 @@ router.patch('/me/:_id', celebrate({
 
 router.patch('/me/avatar/:_id', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required(),
+    avatar: Joi.string().required().pattern(/^https?:\/\/\w{1,}/),
   }),
 }), patchAvatar);
 

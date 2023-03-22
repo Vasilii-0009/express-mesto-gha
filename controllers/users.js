@@ -25,8 +25,10 @@ function getUser(req, res, next) {
       return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      const resCode = (err.name === 'CastError') ? next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)')) : next(err);
-      return resCode;
+      if (err.name === 'CastError') {
+        return next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)'));
+      }
+      return next(err);
     });
 }
 
@@ -40,8 +42,10 @@ function patchUser(req, res, next) {
       return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      const resCode = (err.name === 'ValidationError') ? next(new ValidationError('Поля заполнины не коректно')) : next(err);
-      return resCode;
+      if (err.name === 'ValidationError') {
+        return next(new ValidationError('Поля заполнины не коректно'));
+      }
+      return next(err);
     });
 }
 
@@ -72,7 +76,7 @@ function creatUser(req, res, next) {
       if (err.code === 11000) {
         return next(new DublicatError('Пользователь с такими данными уже существует'));
       }
-      next(err);
+      return next(err);
     });
 }
 

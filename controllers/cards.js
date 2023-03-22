@@ -14,8 +14,10 @@ function createCard(req, res, next) {
   })
     .then((card) => res.status(StatusOkCreat).send(card))
     .catch((err) => {
-      const resCode = (err.name === 'ValidationError') ? next(new ValidationError('Поля заполнины не коректно')) : next(err);
-      return resCode;
+      if (err.name === 'ValidationError') {
+        return next(new ValidationError('Поля заполнины не коректно'));
+      }
+      return next(err);
     });
 }
 
@@ -32,22 +34,26 @@ function deleteCard(req, res, next) {
   Card.findById(req.params.cardId)
     .then((user) => {
       if (user === null || !user) {
-        return next(new NotFoundError('Пользователь по указанному _id не найден'));
+        next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
       const paramsId = req.user._id.toString();
+
       const cardId = user.owner.toString();
+
       if (paramsId === cardId) {
         Card.findByIdAndRemove(req.params.cardId)
           .then((card) => {
             res.send({ data: card });
           });
       } else {
-        return next(new NotFoundError('У вас нет прав для удаления данной карточки'));
+        next(new NotFoundError('У вас нет прав для удаления данной карточки'));
       }
     })
     .catch((err) => {
-      const resCode = (err.name === 'CastError') ? next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)')) : next(err);
-      return resCode;
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)'));
+      }
+      return next(err);
     });
 }
 
@@ -64,8 +70,10 @@ function putCardLikes(req, res, next) {
       return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      const resCode = (err.name === 'CastError') ? next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)')) : next(err);
-      return resCode;
+      if (err.name === 'CastError') {
+        return next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)'));
+      }
+      return next(err);
     });
 }
 
@@ -82,8 +90,10 @@ function putDeleteLikes(req, res, next) {
       return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      const resCode = (err.name === 'CastError') ? next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)')) : next(err);
-      return resCode;
+      if (err.name === 'CastError') {
+        return next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)'));
+      }
+      return next(err);
     });
 }
 

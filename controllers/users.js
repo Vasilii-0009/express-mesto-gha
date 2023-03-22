@@ -17,10 +17,10 @@ function getUsers(req, res, next) {
 }
 
 function getUser(req, res, next) {
-  User.findById(req.params.userId)
-    .then((useris) => {
-      if (useris !== null) {
-        res.status(StatusOk).send({ data: useris });
+  User.findById(req.user)
+    .then((user) => {
+      if (user !== null) {
+        res.status(StatusOk).send({ data: user });
       }
       return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
@@ -34,7 +34,7 @@ function getUser(req, res, next) {
 
 function patchUser(req, res, next) {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.params._id, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user, { name, about }, { new: true, runValidators: true })
     .then((newUser) => {
       if (newUser) {
         res.status(StatusOk).send(newUser);
@@ -51,7 +51,7 @@ function patchUser(req, res, next) {
 
 function patchAvatar(req, res, next) {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.params._id, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user, { avatar }, { new: true, runValidators: true })
     .then((newAvatar) => {
       if (newAvatar) {
         res.status(StatusOk).send(newAvatar);
@@ -102,11 +102,7 @@ function login(req, res, next) {
 }
 
 function getInfoUser(req, res, next) {
-  const { authorization } = req.headers;
-  const token = authorization.replace('Bearer ', '');
-  const payload = jwt.verify(token, 'some-secret-key');
-
-  User.findById(payload._id)
+  User.findById(req.user)
     .then((user) => {
       res.status(200).send(user);
     })

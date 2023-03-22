@@ -32,18 +32,18 @@ function getCards(req, res, next) {
 
 function deleteCard(req, res, next) {
   Card.findById(req.params.cardId)
-    .then((user) => {
-      if (user === null || !user) {
+    .then((card) => {
+      if (card === null || !card) {
         next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
       const paramsId = req.user._id.toString();
 
-      const cardId = user.owner.toString();
+      const cardId = card.owner.toString();
 
       if (paramsId === cardId) {
         Card.findByIdAndRemove(req.params.cardId)
-          .then((card) => {
-            res.send({ data: card });
+          .then((removedCard) => {
+            res.send({ data: removedCard });
           });
       } else {
         next(new NotFoundError('У вас нет прав для удаления данной карточки'));

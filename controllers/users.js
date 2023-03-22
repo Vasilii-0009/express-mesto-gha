@@ -4,7 +4,6 @@ const User = require('../models/user');
 
 // pr14
 const NotFoundError = require('../utils/not-found-err');
-const BadRequestError = require('../utils/bad-request-err');
 const ValidationError = require('../utils/validation-err');
 const DublicatError = require('../utils/duplicate-err');
 const UnauthorizedError = require('../utils/unauthorized-err');
@@ -20,16 +19,14 @@ function getUsers(req, res, next) {
 function getUser(req, res, next) {
   User.findById(req.params.userId)
     .then((useris) => {
-      if (useris === null) {
-        next(new NotFoundError('Пользователь по указанному _id не найден'));
+      if (useris !== null) {
+        res.status(StatusOk).send({ data: useris });
       }
-      res.status(StatusOk).send({ data: useris });
+      return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError());
-      }
-      next(err);
+      const resCode = (err.name === 'CastError') ? next(new ValidationError('Переданы некорректные данные при создании пользователя.(то есть некоректный id)')) : next(err);
+      return resCode;
     });
 }
 
@@ -37,16 +34,14 @@ function patchUser(req, res, next) {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.params._id, { name, about }, { new: true, runValidators: true })
     .then((newUser) => {
-      if (!newUser) {
-        next(new NotFoundError('Пользователь по указанному _id не найден'));
+      if (newUser) {
+        res.status(StatusOk).send(newUser);
       }
-      res.status(StatusOk).send(newUser);
+      return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError());
-      }
-      next(err);
+      const resCode = (err.name === 'ValidationError') ? next(new ValidationError('Поля заполнины не коректно')) : next(err);
+      return resCode;
     });
 }
 
@@ -54,10 +49,10 @@ function patchAvatar(req, res, next) {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.params._id, { avatar }, { new: true, runValidators: true })
     .then((newAvatar) => {
-      if (!newAvatar) {
-        next(new NotFoundError('Пользователь по указанному _id не найден'));
+      if (newAvatar) {
+        res.status(StatusOk).send(newAvatar);
       }
-      res.status(StatusOk).send(newAvatar);
+      return next(new NotFoundError('Пользователь по указанному _id не найден'));
     })
     .catch(next);
 }
@@ -72,9 +67,10 @@ function creatUser(req, res, next) {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError());
-      } else if (err.code === 11000) {
-        next(new DublicatError('Пользователь с такими данными уже существует'));
+        return next(new ValidationError('Поля заполнины не коректно'));
+      }
+      if (err.code === 11000) {
+        return next(new DublicatError('Пользователь с такими данными уже существует'));
       }
       next(err);
     });
@@ -85,18 +81,17 @@ function login(req, res, next) {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        next(new UnauthorizedError('Неправильные почта или пароль '));
+        return next(new UnauthorizedError('Неправильные почта или пароль '));
       }
 
       return bcrypt.compare(password, user.password)
 
         .then((matched) => {
-          if (!matched) {
-            next(new UnauthorizedError('Неправильные почта или пароль '));
+          if (matched) {
+            const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+            res.send({ user, token });
           }
-
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-          res.send({ user, token });
+          return next(new UnauthorizedError('Неправильные почта или пароль '));
         });
     })
     .catch(next);
@@ -105,14 +100,8 @@ function login(req, res, next) {
 function getInfoUser(req, res, next) {
   const { authorization } = req.headers;
   const token = authorization.replace('Bearer ', '');
+  const payload = jwt.verify(token, 'some-secret-key');
 
-  let payload;
-
-  try {
-    payload = jwt.verify(token, 'some-secret-key');
-  } catch (err) {
-    next(new UnauthorizedError('Необходима авторизация'));
-  }
   User.findById(payload._id)
     .then((user) => {
       res.status(200).send(user);

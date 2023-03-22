@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(v) {
-        return /^https?:\/\/\w{1,}/.test(v);
+        return /(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.))(:\d{2,5})?((\/.+)+)?\/?#?/.test(v);
       },
       message: 'Не валидная сылка, сылка должна начинатся: "https//"',
     },
@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    maxlength: 30,
     unique: true,
     validate: {
       validator(v) {
